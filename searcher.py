@@ -36,12 +36,17 @@ def searcher(map_, pos):
 
     if not directions:
         if 0 not in map_:
+            # Can be safely deleted to maintain the uninformed search criteria
             print(map_)
             raise Exception("Done")
         return False
 
     for baring, direction in directions.items():
         pos_new = (pos[0] + direction[0], pos[1] + direction[1])
+        # TODO:
+        # Add code to move to the new position
+        # The new position could be adjacent (n, w, e, s) in which case there is no problem
+        # But if it is not, we can use flood fill on the nodes the agent has discovered to find the shortest path
 
         # print(pos_new)  # This is the next cell to search
 
@@ -49,6 +54,8 @@ def searcher(map_, pos):
             return True
 
     return False
+
+    # def add_position(pos, map_):
 
 
 if __name__ == '__main__':
