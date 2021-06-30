@@ -1,14 +1,5 @@
 import numpy as np
 
-MAP = np.array([
-    [0, 0, 0, 0, 1],
-    [0, 0, 0, 1, 0],
-    [0, 0, 0, 0, 0],
-    [0, 0, 1, 0, 0],
-    [1, 1, 0, 0, 0],
-])
-START = (0, 0)
-
 
 def get_directions(map_, pos):
     # Get the e, n, w, s directions around a given position which are not walls
@@ -39,19 +30,20 @@ def get_directions(map_, pos):
 
 
 def searcher(map_, pos):
-    # Backtracking search. Return the blocks to be searched next
+    # Backtracking search. Return the order of blocks to be searched
     map_[pos[0], pos[1]] = 1
     directions = get_directions(map_, pos)
 
     if not directions:
         if 0 not in map_:
+            print(map_)
             raise Exception("Done")
-            return True
         return False
 
     for baring, direction in directions.items():
-        print(f"{baring},", end="")
         pos_new = (pos[0] + direction[0], pos[1] + direction[1])
+
+        # print(pos_new)  # This is the next cell to search
 
         if searcher(map_, pos_new):
             return True
@@ -60,6 +52,16 @@ def searcher(map_, pos):
 
 
 if __name__ == '__main__':
+
+    MAP = np.array([
+        [0, 0, 0, 0, 1],
+        [0, 0, 0, 1, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 1, 0, 0],
+        [1, 1, 0, 0, 0],
+    ])
+    START = (0, 0)
+
     try:
         searcher(MAP, START)
     except Exception as e:
