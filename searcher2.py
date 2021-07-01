@@ -1,5 +1,6 @@
 import numpy as np
 from math import sqrt
+from shortest_path import ShortestPath
 
 
 class Searcher:
@@ -40,7 +41,8 @@ class Searcher:
         return possible_dirs
 
     def searcher(self, pos):
-        # Backtracking search. Return the order of blocks to be searched
+        # Backtracking search. Fill self.visited_coords with the blocks to be searched.
+        # Note: duplicate coords exist for when the searcher needs to turn around; those can be ignored if needed
         self.map[pos[0], pos[1]] = 1
         self.current = pos
         directions = self.get_directions(pos)
@@ -50,18 +52,13 @@ class Searcher:
             if 0 not in self.map:
                 # Can be safely deleted to maintain the uninformed search criteria
                 print(self.map)
+                print(self.visited_coords)
                 raise Exception("Done!")
             return False
 
         for baring, direction in directions.items():
             pos_new = (pos[0] + direction[0], pos[1] + direction[1])
             self.move_to(pos_new)
-            # TODO:
-            # Add code to move to the new position
-            # The new position could be adjacent (n, w, e, s) in which case there is no problem
-            # But if it is not, we can use flood fill on the nodes the agent has discovered to find the shortest path
-
-            # print(pos_new)  # This is the next cell to search
 
             if self.searcher(pos_new):
                 return True
@@ -96,10 +93,10 @@ class Searcher:
             return
 
         # Only get here when the new positions is far away from current position
-        # Build a matrix where discovered points are marked as 0, and others are marked as inf
-        # Then, find the shortest path between self.current and pos_new given the self.discovered_coords
+        # Find the shortest path between self.current and pos_new given the self.discovered_coords
         discovered_map = self.get_discovered_map()
-        path = self.shortest_path(discovered_map, pos_new)
+        path = ShortestPath(map_=discovered_map, start=self.current, destination=pos_new).shortest_path
+        self.visited_coords.extend(path)
 
     def get_discovered_map(self):
         discovered_map = []
@@ -129,47 +126,6 @@ class Searcher:
             coords.append((row, col))
         return coords
 
-    def parse_discovered(self, discovered_map):
-        print(discovered_map)
-
-    def shortest_path(self, discovered_map, pos_new, current=None, rank=1):
-        if not current:
-            current = self.current
-
-        print(f"\n current: {current}, destination: {pos_new}")
-
-        discovered_map_temp = np.copy(discovered_map)
-        cells = [current]
-        cells_index = 0
-        discovered_map_temp[current[0], current[1]] = rank
-        while True:
-            # Flood fill the discovered map from source to destination
-            # ITS WRONG
-            try:
-                directions = self.get_directions(cells[cells_index], map_=discovered_map_temp)
-                if directions:
-                    rank += 1
-                # print(discovered_map)
-            except IndexError:
-                print(discovered_map_temp)
-                break
-
-            coords = self.coords_from_directions(cells[cells_index], directions)
-
-            for coord in coords:
-                if coord not in cells:
-                    cells.append(coord)
-                    discovered_map_temp[coord[0], coord[1]] = rank
-                    if coord == pos_new:
-                        return self.parse_discovered(discovered_map_temp)
-            cells_index += 1
-        print("Here")
-        # if current == pos_new:
-        #     # we arrived at the destination
-        #     discovered_map[current] = rank
-        #     # print("found it")
-        #     return True
-
 
 if __name__ == '__main__':
 
@@ -182,6 +138,7 @@ if __name__ == '__main__':
     ])
     START = (0, 0)
 
+    print(MAP, end="\n\n")
     try:
         Searcher(MAP, start=START)
     except Exception as e:

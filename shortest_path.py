@@ -9,8 +9,8 @@ class ShortestPath:
         self.rows, self.cols = map_.shape
         self.que = [self.start]
 
-        print(self.map)
-        print()
+        # print(self.map)
+        # print()
 
         self.flood_fill()
         self.shortest_path = self.get_shortest_path()
@@ -49,7 +49,7 @@ class ShortestPath:
                     self.map[neighbor[0], neighbor[1]] = rank
                     self.que.append(neighbor)
                     if neighbor == self.destination:
-                        print(self.map)
+                        # print(self.map)
                         return
 
     def get_shortest_path(self):
