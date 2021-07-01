@@ -1,5 +1,5 @@
+import sys
 import numpy as np
-from math import sqrt
 from shortest_path import ShortestPath
 
 
@@ -109,10 +109,6 @@ class Searcher:
                     row_new.append(np.inf)
             discovered_map.append(row_new)
 
-        # # debugging
-        # print(np.array(discovered_map))
-        # raise Exception("Debugging")
-
         return np.array(discovered_map)
 
     def coords_from_directions(self, current, directions):
@@ -142,5 +138,5 @@ if __name__ == '__main__':
     try:
         Searcher(MAP, start=START)
     except Exception as e:
-        # raise e
         print(e)
+        # sys.exit(0)
