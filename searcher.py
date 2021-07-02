@@ -1,4 +1,3 @@
-import sys
 import numpy as np
 from shortest_path import ShortestPath
 
@@ -42,7 +41,6 @@ class Searcher:
 
     def searcher(self, pos):
         # Backtracking search. Fill self.visited_coords with the blocks to be searched.
-        # Note: duplicate coords exist for when the searcher needs to turn around; those can be ignored if needed
         self.map[pos[0], pos[1]] = 1
         self.current = pos
         directions = self.get_directions(pos)
@@ -139,4 +137,3 @@ if __name__ == '__main__':
         Searcher(MAP, start=START)
     except Exception as e:
         print(e)
-        # sys.exit(0)

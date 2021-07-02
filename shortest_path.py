@@ -54,7 +54,6 @@ class ShortestPath:
         path = []
         index = self.destination
         while True:
-            # print(2)
             val = self.map[index[0], index[1]]
             val = int(val)
 
@@ -66,7 +65,7 @@ class ShortestPath:
             if val == 1:
                 path = path[::-1]
                 path.append(self.destination)
-                return path
+                return path[1:]
 
 
 if __name__ == '__main__':
