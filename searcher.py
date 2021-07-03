@@ -1,12 +1,18 @@
 import numpy as np
 from shortest_path import ShortestPath
+import cv2
+import random
 
 
 class Searcher:
-    def __init__(self, map_, start=(0, 0)):
-        self.map = map_
+    def __init__(self, map_, start=None, vid=False):
+        self.map_name = map_
+        self.map = cv2.imread(self.map_name, 0) // 255
+        self.start_map = np.copy(self.map)  # save start map
         self.rows, self.cols = self.map.shape
-        self.current = start
+        self.start = start if start is not None else self.get_start()
+        self.current = self.start
+        self.vid = vid
         self.visited_coords = []
         self.discovered_coords = set()
         self.directions = {
@@ -15,7 +21,18 @@ class Searcher:
             "W": (0, -1),
             "S": (1, 0)
         }
-        self.searcher(start)
+        self.searcher(self.current)
+
+    def get_start(self):
+        # get a random start position
+        while True:
+            coord = (random.choice(range(self.rows)), random.choice(range(self.cols)))
+            if self.map[coord[0], coord[1]] == 0:
+                return coord
+
+    def not_valid(self, pos):
+        r, c = pos
+        return r < 0 or r >= self.rows or c < 0 or c >= self.cols
 
     def get_directions(self, pos, map_=None):
         # Get the e, n, w, s directions around a given position which are not walls
@@ -29,9 +46,7 @@ class Searcher:
             candidate_row = r + dr
             candidate_col = c + dc
 
-            if candidate_col < 0 or candidate_col >= self.cols:
-                continue
-            if candidate_row < 0 or candidate_row >= self.rows:
+            if self.not_valid((candidate_row, candidate_col)):
                 continue
 
             if map_[candidate_row, candidate_col] == 0:
@@ -48,18 +63,17 @@ class Searcher:
 
         if not directions:
             if 0 not in self.map:
-                # Can be safely deleted to maintain the uninformed search criteria
-                print(self.map)
-                print(self.visited_coords)
-                raise Exception("Done!")
-            return False
+                # print(self.map)
+                # print(self.visited_coords)
+                if self.vid:
+                    self.plot_path()
+                raise Exception(f"Done in {len(self.visited_coords)} steps.")
+            return
 
         for baring, direction in directions.items():
             pos_new = (pos[0] + direction[0], pos[1] + direction[1])
             self.move_to(pos_new)
-
-            if self.searcher(pos_new):
-                return True
+            self.searcher(pos_new)
 
         return False
 
@@ -121,35 +135,29 @@ class Searcher:
             coords.append((row, col))
         return coords
 
+    def plot_path(self):
+        start = np.copy(self.start_map) * 255
+        start = cv2.merge((start, start, start))
+        start[self.start[0], self.start[1], 2] += 150
+        vid_name = f"{self.map_name.split('.')[0]}.avi"
+        out = cv2.VideoWriter(vid_name, cv2.VideoWriter_fourcc(*'DIVX'), 30, (self.cols, self.rows))
+        out.write(start)
+        temp = np.copy(start)
+        for i, coord in enumerate(self.visited_coords, start=1):
+            temp = np.copy(temp)
+            color = temp[coord[0], coord[1], 2]
+            if color > 0:
+                temp[coord[0], coord[1], 1] += 200
+            else:
+                temp[coord[0], coord[1], 2] += 150
+            out.write(temp)
+        out.release()
+
 
 if __name__ == '__main__':
 
-    # MAP = np.array([
-    #     [0, 0, 0, 0, 1],
-    #     [0, 0, 0, 1, 0],
-    #     [0, 0, 0, 0, 0],
-    #     [0, 0, 1, 0, 0],
-    #     [1, 1, 0, 0, 0],
-    # ])
-
-    MAP = np.array([
-        [0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-        [0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0],
-        [1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0],
-        [0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0],
-        [0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0],
-        [1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0],
-        [0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0],
-        [0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0],
-        [0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
-    ])
-    START = (4, 5)
-
-    print(MAP, end="\n\n")
+    MAP = "maps/map2_100_i.png"
     try:
-        Searcher(MAP, start=START)
+        Searcher(MAP, start=None, vid=False)
     except Exception as e:
         print(e)
