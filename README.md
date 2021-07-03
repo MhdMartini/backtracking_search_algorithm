@@ -1,2 +1,3 @@
 # backtracking_search_algorithm
-Uninformed search of map with obstacles
+Uninformed DFS of map with obstacles. 
+Sample map is provided in the maps directory.
