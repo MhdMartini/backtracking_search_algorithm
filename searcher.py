@@ -93,8 +93,9 @@ class Searcher:
         # Only get here when the new positions is far away from current position
         # Find the shortest path between self.current and pos_new given the self.discovered_coords
         discovered_map = self.get_discovered_map()
-        path = ShortestPath(map_=discovered_map, start=self.current, destination=pos_new).shortest_path
-        self.visited_coords.extend(path)
+        if self.current != pos_new:
+            path = ShortestPath(map_=discovered_map, start=self.current, destination=pos_new).shortest_path
+            self.visited_coords.extend(path)
 
     def get_discovered_map(self):
         discovered_map = []
@@ -123,14 +124,29 @@ class Searcher:
 
 if __name__ == '__main__':
 
+    # MAP = np.array([
+    #     [0, 0, 0, 0, 1],
+    #     [0, 0, 0, 1, 0],
+    #     [0, 0, 0, 0, 0],
+    #     [0, 0, 1, 0, 0],
+    #     [1, 1, 0, 0, 0],
+    # ])
+
     MAP = np.array([
-        [0, 0, 0, 0, 1],
-        [0, 0, 0, 1, 0],
-        [0, 0, 0, 0, 0],
-        [0, 0, 1, 0, 0],
-        [1, 1, 0, 0, 0],
+        [0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+        [0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0],
+        [1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0],
+        [0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0],
+        [0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0],
+        [1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0],
+        [0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0],
+        [0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0],
+        [0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
     ])
-    START = (0, 0)
+    START = (4, 5)
 
     print(MAP, end="\n\n")
     try:
