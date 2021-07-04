@@ -158,9 +158,9 @@ def print_help():
     print()
     print("\tpython searcher.py [--map MAP] [--start START] [--vid VID] [--help | -h]")
     print()
-    print("\t\t--map:\t\tpath to map image")
-    print("\t\t--start:\tstart position <row,col>")
-    print("\t\t--vid:\t\tboolean for video output")
+    print("\t\t--map:\t\tpath to map image, default is maps/map2_100_i.png")
+    print("\t\t--start:\tstart position <row,col>, default is randomly generated")
+    print("\t\t--vid:\t\tboolean for video output, default is False")
     print()
 
 
