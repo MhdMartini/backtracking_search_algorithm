@@ -59,7 +59,6 @@ class MazeGen:
 
 def print_help():
     print()
-    print("Run:")
     print("\tpython maze_gen.py [--width WIDTH] [--help | -h]")
     print()
     print("\t\t--width:\twidth of square maze")
