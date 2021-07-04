@@ -68,7 +68,7 @@ def print_help():
 if __name__ == '__main__':
     import cv2
     import sys
-    WIDTH = 50  # 50 x 50 map
+    WIDTH = 75  # 50 x 50 map
 
     # lazy argument parser
     if "-h" in sys.argv or "--help" in sys.argv:
