@@ -79,3 +79,4 @@ if __name__ == '__main__':
     destination = (1, 4)
     path = ShortestPath(map_=MAP, start=start, destination=destination).shortest_path
     print(path)
+

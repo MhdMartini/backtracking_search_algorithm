@@ -2,6 +2,7 @@ import numpy as np
 from shortest_path import ShortestPath
 import cv2
 import random
+import uuid
 
 
 class Searcher:
@@ -22,6 +23,9 @@ class Searcher:
             "S": (1, 0)
         }
         self.searcher(self.current)
+        print(f"Done in {len(self.visited_coords)} steps.")
+        if self.vid:
+            self.plot_path()
 
     def get_start(self):
         # get a random start position
@@ -62,20 +66,13 @@ class Searcher:
         self.add_discovered(pos, directions)  # Add the discovered cells to the self.discovered_coords
 
         if not directions:
-            if 0 not in self.map:
-                # print(self.map)
-                # print(self.visited_coords)
-                if self.vid:
-                    self.plot_path()
-                raise Exception(f"Done in {len(self.visited_coords)} steps.")
             return
 
         for baring, direction in directions.items():
             pos_new = (pos[0] + direction[0], pos[1] + direction[1])
             self.move_to(pos_new)
             self.searcher(pos_new)
-
-        return False
+        return
 
     def adjacent(self, pos_new):
         r, c = self.current
@@ -139,8 +136,8 @@ class Searcher:
         start = np.copy(self.start_map) * 255
         start = cv2.merge((start, start, start))
         start[self.start[0], self.start[1], 2] += 150
-        vid_name = f"{self.map_name.split('.')[0]}.avi"
-        out = cv2.VideoWriter(vid_name, cv2.VideoWriter_fourcc(*'DIVX'), 30, (self.cols, self.rows))
+        vid_name = f"{self.map_name.split('.')[0]}{uuid.uuid1()}.avi"
+        out = cv2.VideoWriter(vid_name, cv2.VideoWriter_fourcc(*'DIVX'), 60, (self.cols, self.rows))
         out.write(start)
         temp = np.copy(start)
         for i, coord in enumerate(self.visited_coords, start=1):
@@ -157,7 +154,5 @@ class Searcher:
 if __name__ == '__main__':
 
     MAP = "maps/map2_100_i.png"
-    try:
-        Searcher(MAP, start=None, vid=False)
-    except Exception as e:
-        print(e)
+    Searcher(MAP, start=None, vid=True)
+
