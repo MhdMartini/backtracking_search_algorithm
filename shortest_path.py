@@ -69,14 +69,14 @@ class ShortestPath:
 
 if __name__ == '__main__':
     MAP = np.array([
-        [0, 0, 0, 0, np.inf],
-        [0, 0, np.inf, np.inf, 0],
-        [0, 0, 0, 0, 0],
-        [0, 0, np.inf, 0, 0],
-        [np.inf, np.inf, 0, 0, 0],
+        [0, 0, 0, 0, np.inf, 0, 0, 0, np.inf],
+        [0, 0, np.inf, np.inf, 0, 0, np.inf, 0, 0],
+        [0, 0, 0, 0, 0, 0, np.inf, 0, 0],
+        [0, 0, np.inf, 0, 0, 0, np.inf, 0, 0],
+        [np.inf, np.inf, 0, 0, 0, 0, np.inf, np.inf, 0],
+        [0, 0, np.inf, np.inf, 0, 0, np.inf, 0, 0],
+        [0, 0, 0, 0, 0, 0, np.inf, 0, 0],
     ])
     start = (0, 0)
-    destination = (1, 4)
+    destination = (4, 5)
     path = ShortestPath(map_=MAP, start=start, destination=destination).shortest_path
-    print(path)
-

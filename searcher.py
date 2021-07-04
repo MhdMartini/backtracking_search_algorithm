@@ -23,9 +23,15 @@ class Searcher:
             "S": (1, 0)
         }
         self.searcher(self.current)
-        print(f"Done in {len(self.visited_coords)} steps.")
+        self.print_result()
         if self.vid:
             self.plot_path()
+
+    def print_result(self):
+        print(f"Map size: {self.rows} x {self.cols}")
+        print(f"Start Position: {self.start}")
+        print(f"Explorable cells: {(self.start_map==0).sum()}")
+        print(f"Done in {len(self.visited_coords)} steps.")
 
     def get_start(self):
         # get a random start position
@@ -38,11 +44,8 @@ class Searcher:
         r, c = pos
         return r < 0 or r >= self.rows or c < 0 or c >= self.cols
 
-    def get_directions(self, pos, map_=None):
+    def get_directions(self, pos):
         # Get the e, n, w, s directions around a given position which are not walls
-        if map_ is None:
-            map_ = self.map
-
         possible_dirs = {}
         r, c = pos
         for baring, direction in self.directions.items():
@@ -53,7 +56,7 @@ class Searcher:
             if self.not_valid((candidate_row, candidate_col)):
                 continue
 
-            if map_[candidate_row, candidate_col] == 0:
+            if self.map[candidate_row, candidate_col] == 0:
                 possible_dirs[baring] = direction
 
         return possible_dirs
@@ -135,7 +138,7 @@ class Searcher:
     def plot_path(self):
         start = np.copy(self.start_map) * 255
         start = cv2.merge((start, start, start))
-        start[self.start[0], self.start[1], 2] += 150
+        start[self.start[0], self.start[1], 0] = 200
         vid_name = f"{self.map_name.split('.')[0]}{uuid.uuid1()}.avi"
         out = cv2.VideoWriter(vid_name, cv2.VideoWriter_fourcc(*'DIVX'), 60, (self.cols, self.rows))
         out.write(start)
@@ -151,8 +154,34 @@ class Searcher:
         out.release()
 
 
+def print_help():
+    print("Run:")
+    print("\tpython searcher.py [--map MAP] [--start START] [--vid VID] [--help | -h]")
+    print()
+    print("\t\t--map:\tpath to map image")
+    print("\t\t--start:\tstart position <row,col>")
+    print("\t\t--vid:\tboolean for video output")
+    print()
+
+
 if __name__ == '__main__':
-
+    import sys
     MAP = "maps/map2_100_i.png"
-    Searcher(MAP, start=None, vid=True)
+    START = None
+    VID = False
 
+    # lazy argument parser
+    if "-h" in sys.argv or "--help" in sys.argv:
+        print_help()
+        sys.exit()
+
+    for i in range(1, len(sys.argv), 2):
+        if sys.argv[i] == "--map":
+            MAP = sys.argv[i + 1]
+        elif sys.argv[i] == "--start":
+            START = sys.argv[i + 1].split(",")
+            START = (int(START[0]), int(START[1]))
+        elif sys.argv[i] == "--vid":
+            VID = sys.argv[i + 1] == "True"
+
+    Searcher(MAP, start=START, vid=VID)
