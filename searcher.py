@@ -63,17 +63,19 @@ class Searcher:
 
     def searcher(self, pos):
         # Backtracking search. Fill self.visited_coords with the blocks to be searched.
+        if self.map[pos[0], pos[1]] == 1:
+            return
         self.map[pos[0], pos[1]] = 1
-        self.current = pos
         directions = self.get_directions(pos)
         self.add_discovered(pos, directions)  # Add the discovered cells to the self.discovered_coords
+        self.move_to(pos)
 
+        self.current = pos
         if not directions:
             return
 
         for baring, direction in directions.items():
             pos_new = (pos[0] + direction[0], pos[1] + direction[1])
-            self.move_to(pos_new)
             self.searcher(pos_new)
         return
 
