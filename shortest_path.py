@@ -34,7 +34,7 @@ class ShortestPath:
     def flood_fill(self):
         rank = 1
         self.map[self.start[0], self.start[1]] = rank
-        while True:
+        while len(self.que):
             rank += 1
             for i in range(len(self.que)):
                 current = self.que.pop(0)

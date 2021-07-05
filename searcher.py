@@ -23,6 +23,12 @@ class Searcher:
             "S": (1, 0)
         }
         self.searcher(self.current)
+
+        # return back to base - optional
+        final_path = ShortestPath(
+            map_=self.start_map, start=self.visited_coords[-1], destination=self.start).shortest_path
+        self.visited_coords.extend(final_path)
+
         self.print_result()
         if self.vid:
             self.plot_path()
@@ -57,6 +63,7 @@ class Searcher:
                 continue
 
             if self.map[candidate_row, candidate_col] == 0:
+                # should separate this condition from method, instead of the conditional in the searcher method
                 possible_dirs[baring] = direction
 
         return possible_dirs
