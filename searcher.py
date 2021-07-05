@@ -149,8 +149,8 @@ class Searcher:
         start = cv2.merge((start, start, start))
         start[self.start[0], self.start[1], 0] = 200
         vid_name = f"{self.map_name.split('.')[0]}{uuid.uuid1()}.avi"
-        out = cv2.VideoWriter(vid_name, cv2.VideoWriter_fourcc(*'DIVX'), 60, (self.cols, self.rows))
-        out.write(start)
+        out = cv2.VideoWriter(vid_name, cv2.VideoWriter_fourcc(*'DIVX'), 60, (500, 500))
+        out.write(cv2.resize(start, (500, 500), interpolation=cv2.INTER_AREA))
         temp = np.copy(start)
         for i, coord in enumerate(self.visited_coords, start=1):
             temp = np.copy(temp)
@@ -159,7 +159,7 @@ class Searcher:
                 temp[coord[0], coord[1], 1] += 200
             else:
                 temp[coord[0], coord[1], 2] += 150
-            out.write(temp)
+            out.write(cv2.resize(temp, (500, 500), interpolation=cv2.INTER_AREA))
         out.release()
 
 
