@@ -2,6 +2,7 @@ import numpy as np
 import random
 import cv2
 import uuid
+from tqdm import tqdm
 
 
 class Cell:
@@ -145,7 +146,10 @@ class BacktrackSearch:
         out.write(cv2.resize(start_map, (500, 500), interpolation=cv2.INTER_AREA))
         temp = np.copy(start_map)
         path = self.convert_path()
-        for i, coord in enumerate(path, start=1):
+
+        for i in tqdm(range(1, len(path))):
+            coord = path[i]
+        # for i, coord in enumerate(path, start=1):
             temp = np.copy(temp)
             color = temp[coord[0], coord[1], 2]
             if color > 0:
