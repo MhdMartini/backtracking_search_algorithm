@@ -1,158 +1,151 @@
 import numpy as np
-from shortest_path import ShortestPath
-import cv2
 import random
+import cv2
 import uuid
 
 
-class Searcher:
-    def __init__(self, map_, start=None, vid=False):
-        self.map_name = map_
-        self.map = cv2.imread(self.map_name, 0) // 255
-        self.start_map = np.copy(self.map)  # save start map
-        self.rows, self.cols = self.map.shape
-        self.start = start if start is not None else self.get_start()
-        self.current = self.start
-        self.vid = vid
-        self.visited_coords = []
-        self.discovered_coords = set()
-        self.directions = {
-            "E": (0, 1),
-            "N": (-1, 0),
-            "W": (0, -1),
-            "S": (1, 0)
-        }
-        self.searcher(self.current)
+class Cell:
+    def __init__(self, val=None, prev=None, next_=None, row=None, col=None):
+        self.val = val
+        self.prev = prev
+        self.next = next_
+        self.row = row
+        self.col = col
 
-        # return back to base - optional
-        # final_path = ShortestPath(
-        #     map_=self.start_map, start=self.visited_coords[-1], destination=self.start).shortest_path
-        # self.visited_coords.extend(final_path)
+    def __repr__(self):
+        return str(self.val)
+
+
+class BacktrackSearch:
+    def __init__(self, map_name, start=None, vid=False):
+        self.map_name = map_name
+        self.start_np_map = cv2.imread(map_name, 0) // 255
+        self.rows, self.cols = self.start_np_map.shape
+
+        self.start_map = self.construct_map(self.start_np_map)
+        self.map = np.copy(self.start_map)
+
+        self.start = start if start is not None else self.get_rand_start()
+        self.directions = ((0, 1), (1, 0), (0, -1), (-1, 0))
+
+        source = self.map[self.start[0]][self.start[1]]
+        self.path = self.search(source)
 
         self.print_result()
-        if self.vid:
+        if vid:
+            print("\nSaving Video ..")
             self.plot_path()
+            print("Video saved!")
 
     def print_result(self):
         print(f"Map size: {self.rows} x {self.cols}")
         print(f"Start Position: {self.start}")
-        print(f"Explorable cells: {(self.start_map==0).sum()}")
-        print(f"Done in {len(self.visited_coords)} steps.")
+        print(f"Explorable cells: {(self.start_np_map==0).sum()}")
+        print(f"Done in {len(self.path)} steps.")
 
-    def get_start(self):
+    def construct_map(self, map_):
+        # make 2d map of cell objects
+        cells_map = []
+        for i in range(self.rows):
+            row = []
+            for j in range(self.cols):
+                row.append(Cell(val=map_[i, j], row=i, col=j))
+            cells_map.append(row)
+        return cells_map
+
+    def get_rand_start(self):
         # get a random start position
         while True:
             coord = (random.choice(range(self.rows)), random.choice(range(self.cols)))
-            if self.map[coord[0], coord[1]] == 0:
+            if self.map[coord[0]][coord[1]].val == 0:
                 return coord
 
-    def not_valid(self, pos):
-        r, c = pos
-        return r < 0 or r >= self.rows or c < 0 or c >= self.cols
+    def get_neighbors(self, cell):
+        r, c = cell.row, cell.col
 
-    def get_directions(self, pos):
-        # Get the e, n, w, s directions around a given position which are not walls
-        possible_dirs = {}
-        r, c = pos
-        for baring, direction in self.directions.items():
+        neighbors = []
+        for direction in self.directions:
             dr, dc = direction
             candidate_row = r + dr
             candidate_col = c + dc
 
-            if self.not_valid((candidate_row, candidate_col)):
+            if candidate_row < 0 or candidate_row >= self.rows:
+                continue
+            if candidate_col < 0 or candidate_col >= self.cols:
+                continue
+            if self.map[candidate_row][candidate_col].val == 1:
                 continue
 
-            if self.map[candidate_row, candidate_col] == 0:
-                # should separate this condition from method, instead of the conditional in the searcher method
-                possible_dirs[baring] = direction
+            neighbors.append(self.map[candidate_row][candidate_col])
 
-        return possible_dirs
+        return neighbors
 
-    def searcher(self, pos):
-        # Backtracking search. Fill self.visited_coords with the blocks to be searched.
-        if self.map[pos[0], pos[1]] == 1:
-            return
-        self.map[pos[0], pos[1]] = 1
-        directions = self.get_directions(pos)
-        self.add_discovered(pos, directions)  # Add the discovered cells to the self.discovered_coords
-        self.move_to(pos)
+    def search(self, source):
+        que = [source]
+        path = []
+        while len(que):
+            current = que.pop()
+            if current.val == 1:
+                continue
+            if current not in path:
+                path.append(current)
+                current.val = 1
 
-        self.current = pos
-        if not directions:
-            return
+            neighbors = self.get_neighbors(current)
 
-        for baring, direction in directions.items():
-            pos_new = (pos[0] + direction[0], pos[1] + direction[1])
-            self.searcher(pos_new)
-        return
+            if not neighbors:
+                backtracked = self.backtrack(current)
+                path.extend(backtracked)
+                # print_cells(backtracked)
+                # raise Exception("debug")
+                continue
 
-    def adjacent(self, pos_new):
-        r, c = self.current
-        r_new, c_new = pos_new
-        if c == c_new and (r - r_new)**2 == 1:
-            return True
-        if r == r_new and (c - c_new)**2 == 1:
-            return True
-        return False
+            for neighbor in neighbors:
+                que.append(neighbor)
+                neighbor.prev = current
+                current.next = neighbor
 
-    def add_discovered(self, pos, directions):
-        # Add current position and other possible positions to the self.discovered set
-        self.discovered_coords.add(pos)
+        return path
 
-        r, c = pos
-        for _, direction in directions.items():
-            dr, dc = direction
-            row_new = r + dr
-            col_new = c + dc
-            self.discovered_coords.add((row_new, col_new))
+    def backtrack(self, cell):
+        backtracked = []
+        while True:
+            if cell.prev is None:
+                return backtracked
+            backtracked.append(cell.prev)
+            neighbors = self.get_neighbors(cell.prev)
+            for neighbor in neighbors:
+                if neighbor.val == 0:
+                    return backtracked
+            cell = cell.prev
 
-    def move_to(self, pos_new):
-        # if the new position is adjacent to the old position, just append it
-        # Otherwise, find the shortest path and append those cells.
-        if self.adjacent(pos_new):
-            self.visited_coords.append(pos_new)
-            return
-
-        # Only get here when the new positions is far away from current position
-        # Find the shortest path between self.current and pos_new given the self.discovered_coords
-        discovered_map = self.get_discovered_map()
-        if self.current != pos_new:
-            path = ShortestPath(map_=discovered_map, start=self.current, destination=pos_new).shortest_path
-            self.visited_coords.extend(path)
-
-    def get_discovered_map(self):
-        discovered_map = []
+    def get_np_map(self, map_=None):
+        if map_ is None:
+            map_ = self.start_map
+        np_map = np.zeros((self.rows, self.cols))
         for i in range(self.rows):
-            row_new = []
             for j in range(self.cols):
-                if (i, j) in self.discovered_coords:
-                    row_new.append(0)
-                else:
-                    row_new.append(np.inf)
-            discovered_map.append(row_new)
+                np_map[i, j] = map_[i][j].val
+        return np_map
 
-        return np.array(discovered_map)
-
-    def coords_from_directions(self, current, directions):
-        # get the directions dictionary and the current position and return the cells coordinates
-        coords = []
-        r, c = current
-        for _, direction in directions.items():
-            dr, dc = direction
-            row = r + dr
-            col = c + dc
-            coords.append((row, col))
-        return coords
+    def convert_path(self):
+        path = []
+        for cell in self.path:
+            path.append((cell.row, cell.col))
+        return path
 
     def plot_path(self):
-        start = np.copy(self.start_map) * 255
-        start = cv2.merge((start, start, start))
-        start[self.start[0], self.start[1], 0] = 200
+        start_map = self.start_np_map * 255
+        start_map = cv2.merge((start_map, start_map, start_map))
+        start_map[self.start[0], self.start[1], 0] = 200
+
         vid_name = f"{self.map_name.split('.')[0]}{uuid.uuid1()}.avi"
+
         out = cv2.VideoWriter(vid_name, cv2.VideoWriter_fourcc(*'DIVX'), 60, (500, 500))
-        out.write(cv2.resize(start, (500, 500), interpolation=cv2.INTER_AREA))
-        temp = np.copy(start)
-        for i, coord in enumerate(self.visited_coords, start=1):
+        out.write(cv2.resize(start_map, (500, 500), interpolation=cv2.INTER_AREA))
+        temp = np.copy(start_map)
+        path = self.convert_path()
+        for i, coord in enumerate(path, start=1):
             temp = np.copy(temp)
             color = temp[coord[0], coord[1], 2]
             if color > 0:
@@ -161,6 +154,22 @@ class Searcher:
                 temp[coord[0], coord[1], 2] += 150
             out.write(cv2.resize(temp, (500, 500), interpolation=cv2.INTER_AREA))
         out.release()
+
+
+def print_cells(cells):
+    for cell in cells:
+        print(f"({cell.row},{cell.col})", end=" ")
+    print()
+
+
+def print_map(map_):
+    for _ in range(2):
+        print("*")
+    for row in map_:
+        for val in row:
+            print(val, end="   ")
+        print()
+    print("*")
 
 
 def print_help():
@@ -175,7 +184,7 @@ def print_help():
 
 if __name__ == '__main__':
     import sys
-    MAP = "maps/map2_100_i.png"
+    MAP = "maps/map2_125_i.png"
     START = None
     VID = False
 
@@ -193,4 +202,4 @@ if __name__ == '__main__':
         elif sys.argv[i] == "--vid":
             VID = sys.argv[i + 1] == "True"
 
-    Searcher(MAP, start=START, vid=VID)
+    BacktrackSearch(map_name=MAP, start=START, vid=VID)
