@@ -1,7 +1,8 @@
 # backtracking_search_algorithm
-Uninformed DFS of map with obstacles. 
+
+Uninformed backtracking search of map with obstacles, based on DFS.
 Maze generator to generate searchable maps
-Sample map is provided in the maps directory.
+Sample maps are provided in the maps directory.
 
 Generate a random maze:
     python maze_gen.py [--width WIDTH] [--help | -h]
