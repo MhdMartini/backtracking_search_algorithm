@@ -27,7 +27,7 @@ class BacktrackSearch:
         self.map = np.copy(self.start_map)
 
         self.start = start if start is not None else self.get_rand_start()
-        self.directions = ((0, 1), (1, 0), (0, -1), (-1, 0))
+        self.directions = ((-1, 0), (0, -1), (1, 0), (0, 1))
 
         source = self.map[self.start[0]][self.start[1]]
         self.path = self.search(source)
